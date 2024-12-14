@@ -32,10 +32,6 @@ void free_module_cache(JSContext *ctx) {
     ModuleCache *current = module_cache;
     while (current) {
         ModuleCache *next = current->next;
-        // Debug: 打印模块文件名和引用计数
-        printf("Freeing module: %s\n", current->filename);
-        printf("exports ref count before free: %d\n", JS_VALUE_GET_TAG(current->exports));
-
         // 释放 filename
         free(current->filename);
 

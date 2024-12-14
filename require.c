@@ -13,6 +13,17 @@ static char *wrap_module_code(const char *script) {
     return wrapped_script;
 }
 
+// 检查 JSValue 的引用计数 
+void check_js_value_ref_count(JSContext *ctx, JSValue val) {
+    if (JS_VALUE_GET_TAG(val) == JS_TAG_OBJECT) {
+        JSRefCountHeader *hdr = JS_VALUE_GET_PTR(val);
+        printf("JSValue ref count: %d\n", hdr->ref_count);
+    } else {
+        printf("JSValue is not an object\n");
+    }
+}
+
+
 // require 函数实现
 static JSValue js_require(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
     if (argc < 1) {
@@ -52,7 +63,6 @@ static JSValue js_require(JSContext *ctx, JSValueConst this_val, int argc, JSVal
     JSValue exports_obj = JS_NewObject(ctx);
     JS_SetPropertyStr(ctx, module_obj, "exports", JS_DupValue(ctx, exports_obj));
 
-    printf("module_obj tag: %d\n", JS_VALUE_GET_TAG(module_obj)); 
     // 包装模块代码为函数
     char *wrapped_script = malloc(file_size + 64);
     sprintf(wrapped_script, "(function(module, exports) { %s\n})", script);
@@ -82,12 +92,12 @@ static JSValue js_require(JSContext *ctx, JSValueConst this_val, int argc, JSVal
 
     // 从 module.exports 获取导出的值
     JSValue exports = JS_GetPropertyStr(ctx, module_obj, "exports");
-    JS_FreeValue(ctx, module_obj);
 
     // 缓存模块
     add_module_to_cache(ctx, filename, exports); // 缓存模块的 exports
     JS_FreeCString(ctx, filename);
-
+    JS_FreeValue(ctx, module_obj);
+    JS_FreeValue(ctx, exports_obj);
     return exports; // 返回模块的导出值
 }
 
