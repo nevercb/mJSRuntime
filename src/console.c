@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "quickjs.h"
+#include "console.h"
 
 // 实现 console.log
 static JSValue js_console_log(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
